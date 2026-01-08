@@ -34,12 +34,20 @@ h1 { margin-bottom: 10px; padding-left:12px; }
   padding:12px;
   margin-bottom:30px;
 }
+.weekdays {
+  display:grid;
+  grid-template-columns: repeat(7,1fr);
+  gap:6px;
+  padding:4px 0;
+  font-weight:bold;
+  text-align:center;
+}
 .weeks { display:flex; flex-direction:column; gap:10px; }
 .week {
   display:grid;
   grid-template-columns: repeat(7,1fr);
   gap:6px;
-  padding:8px;
+  padding:8px 0;
   border-radius:10px;
   background: var(--bg);
 }
@@ -56,7 +64,7 @@ h1 { margin-bottom: 10px; padding-left:12px; }
   flex-direction:column;
 }
 .day.other { opacity:0.4; }
-.day-header { font-size:12px; margin-bottom:4px; }
+.day-header { font-size:12px; margin-bottom:4px; text-align:center; }
 .blocks { flex-grow:1; display:flex; flex-direction:column; gap:4px; }
 .block {
   font-size:11px;
@@ -106,7 +114,7 @@ button {
 .topbar { display:flex; gap:10px; margin-bottom:10px; align-items:flex-start; padding-left:12px; }
 .topbar button { margin-left:auto; }
 .navbar { position:fixed; top:0; left:0; right:0; display:flex; gap:5px; background:var(--card); border-bottom:1px solid var(--border); padding:5px; z-index:50; display:none; }
-.navbar button { font-size:12pt; padding:3px 6px; }
+.navbar button { font-size:10px; padding:3px 6px; }
 @media (max-width: 768px) {
   .week { grid-template-columns: repeat(2,1fr); }
 }
@@ -185,7 +193,6 @@ function syncDay(dayKey){
         el.textContent=d.txt; 
         el.classList.add(d.cls); 
         el.dataset.h=d.h;
-        // обычные плашки удаляются при клике
         el.addEventListener('click',()=>{ removeBlock(dayKey, idx); });
       }
       blocks.appendChild(el);
@@ -205,6 +212,11 @@ function render(){
 
     const month = document.createElement('div'); month.className='month'; month.id='month-'+m;
     month.innerHTML = `<h2 style='padding-left:12px;'>${monthName}</h2>`;
+
+    const weekdays = document.createElement('div'); weekdays.className='weekdays';
+    weekdays.innerHTML = names.map(n=>`<div>${n}</div>`).join('');
+    month.appendChild(weekdays);
+
     const weeks = document.createElement('div'); weeks.className='weeks';
 
     let d = new Date(year,m,1);
@@ -217,7 +229,7 @@ function render(){
         if(d.getMonth()!==m) day.classList.add('other');
         const key = d.toISOString().slice(0,10);
         day.dataset.day=key;
-        day.innerHTML=`<div class="day-header">${names[i]} ${d.getDate()}</div>`;
+        day.innerHTML=`<div class="day-header">${d.getDate()}</div>`;
         const blocks = document.createElement('div'); blocks.className='blocks';
 
         const ctr = document.createElement('div'); ctr.className='controls';
