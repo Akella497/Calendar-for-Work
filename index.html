@@ -106,7 +106,7 @@ button {
 .topbar { display:flex; gap:10px; margin-bottom:10px; align-items:flex-start; padding-left:12px; }
 .topbar button { margin-left:auto; }
 .navbar { position:fixed; top:0; left:0; right:0; display:flex; gap:5px; background:var(--card); border-bottom:1px solid var(--border); padding:5px; z-index:50; display:none; }
-.navbar button { font-size:10px; padding:3px 6px; }
+.navbar button { font-size:12pt; padding:3px 6px; }
 @media (max-width: 768px) {
   .week { grid-template-columns: repeat(2,1fr); }
 }
@@ -180,7 +180,14 @@ function syncDay(dayKey){
         el.appendChild(del);
         el.dataset.h=0;
         el.classList.add('study');
-      } else { const d=blockDef(b.type); el.textContent=d.txt; el.classList.add(d.cls); el.dataset.h=d.h; }
+      } else { 
+        const d=blockDef(b.type); 
+        el.textContent=d.txt; 
+        el.classList.add(d.cls); 
+        el.dataset.h=d.h;
+        // обычные плашки удаляются при клике
+        el.addEventListener('click',()=>{ removeBlock(dayKey, idx); });
+      }
       blocks.appendChild(el);
     });
     updateWeek(dayEl.closest('.week'));
@@ -223,24 +230,8 @@ function render(){
           b.textContent = (t==='custom'?'Свой текст…':blockDef(t).txt);
           b.addEventListener('click',()=>{
             if(t==='custom'){
-              const blockEl = document.createElement('div');
-              blockEl.className='block study';
-
-              const textSpan = document.createElement('span');
-              textSpan.contentEditable = true;
-              textSpan.textContent = 'Новый блок';
-              textSpan.addEventListener('blur',()=>{ state[key][state[key].length-1].text = textSpan.textContent; save(); });
-
-              const del = document.createElement('span');
-              del.className='delete';
-              del.textContent='×';
-              del.addEventListener('click',(e)=>{ e.stopPropagation(); removeBlock(key, state[key].length-1); });
-
-              blockEl.appendChild(textSpan);
-              blockEl.appendChild(del);
-
               (state[key] ||= []).push({type:'custom', text:'Новый блок'});
-              blocks.appendChild(blockEl);
+              syncDay(key);
             } else { addBlock(key,t); }
             menu.classList.remove('open');
           });
