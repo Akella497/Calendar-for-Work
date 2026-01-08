@@ -45,9 +45,10 @@ h1 { margin-bottom: 10px; padding-left:12px; }
 }
 .weeks { display:flex; flex-direction:column; gap:10px; }
 .week {
-    grid-template-columns: repeat(7, 1fr);
-    gap: 6px;
-  }
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+}
 
   .day {
     min-height: 140px;
@@ -83,7 +84,6 @@ h1 { margin-bottom: 10px; padding-left:12px; }
     font-size: 12px;
     padding: 6px 8px;
   }
-}
 </style>
 </head>
 <body>
