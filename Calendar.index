@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Рабочий календарь, 2026 г.</title>
+<style>
+:root {
+  --bg: #f4f6f8;
+  --text: #111;
+  --card: #ffffff;
+  --border: #d0d7de;
+  --week-ok: #c8f7d2;
+  --btn: #eaeef2;
+}
+body.dark {
+  --bg: #0f0f12;
+  --text: #eaeaea;
+  --card: #1a1a22;
+  --border: #2a2a33;
+  --week-ok: #1f3d2b;
+  --btn: #333;
+}
+body {
+  margin:0; padding:16px;
+  font-family: Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+h1 { margin-bottom: 10px; padding-left:12px; }
+.month {
+  background: var(--card);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:12px;
+  margin-bottom:30px;
+}
+.weeks { display:flex; flex-direction:column; gap:10px; }
+.week {
+  display:grid;
+  grid-template-columns: repeat(7,1fr);
+  gap:6px;
+  padding:8px;
+  border-radius:10px;
+  background: var(--bg);
+}
+.week.green {
+  background: var(--week-ok);
+  outline:2px solid #2ecc71;
+}
+.day {
+  background: var(--card);
+  border-radius:8px;
+  padding:6px;
+  min-height:100px;
+  display:flex;
+  flex-direction:column;
+}
+.day.other { opacity:0.4; }
+.day-header { font-size:12px; margin-bottom:4px; }
+.blocks { flex-grow:1; display:flex; flex-direction:column; gap:4px; }
+.block {
+  font-size:11px;
+  padding:4px 6px;
+  border-radius:6px;
+  cursor:pointer;
+  color:#111;
+  display:flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.block span.delete {
+  margin-left:8px;
+  cursor:pointer;
+  color:red;
+  font-weight:bold;
+}
+body.dark .block{ color:#111; }
+.work { background:#dbeafe; }
+.over { background:#fde68a; }
+.study { background:#e5e7eb; }
+.controls { display:flex; gap:4px; }
+.menu{ position:relative; }
+.menu button{ font-size:11px; }
+.dropdown{
+  position:absolute;
+  bottom:110%; left:0;
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:6px;
+  display:none;
+  flex-direction:column;
+  gap:4px;
+  z-index:10;
+}
+.menu.open .dropdown{ display:flex; }
+.dropdown button{ width:100%; text-align:left; }
+button {
+  font-size:10px;
+  padding:3px 6px;
+  border:none;
+  border-radius:6px;
+  background: var(--btn);
+  cursor:pointer;
+}
+.topbar { display:flex; gap:10px; margin-bottom:10px; align-items:flex-start; padding-left:12px; }
+.topbar button { margin-left:auto; }
+.navbar { position:fixed; top:0; left:0; right:0; display:flex; gap:5px; background:var(--card); border-bottom:1px solid var(--border); padding:5px; z-index:50; display:none; }
+.navbar button { font-size:10px; padding:3px 6px; }
+@media (max-width: 768px) {
+  .week { grid-template-columns: repeat(2,1fr); }
+}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <h1>Рабочий календарь, 2026 г.</h1>
+  <button onclick="toggleTheme()">🌗</button>
+</div>
+<div class="navbar" id="navbar"></div>
+<div id="calendar"></div>
+<script>
+const calendar = document.getElementById('calendar');
+const navbar = document.getElementById('navbar');
+const year = 2026;
+const names = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
+const storeKey = 'workCalendar2026';
+let state = JSON.parse(localStorage.getItem(storeKey) || '{}');
+
+function save(){ localStorage.setItem(storeKey, JSON.stringify(state)); }
+function toggleTheme(){ document.body.classList.toggle('dark'); }
+
+function blockDef(type){
+  return {
+    w8a:{txt:'Работа 8 ч. (9:00–17:00)', h:8, cls:'work'},
+    w4m:{txt:'Работа 4 ч. (9:00–13:00)', h:4, cls:'work'},
+    w4e:{txt:'Работа 4 ч. (13:00–17:00)', h:4, cls:'work'},
+    over:{txt:'Переработка (9:00–17:00)', h:8, cls:'over'},
+    study:{txt:'Учёба', h:0, cls:'study'}
+  }[type];
+}
+
+function normalizeBlock(b){ if(typeof b === 'string') return { type:b }; return b; }
+
+function updateWeek(week){
+  if(!week) return;
+  let sum = 0;
+  week.querySelectorAll('.block').forEach(b=>sum+=Number(b.dataset.h||0));
+  week.classList.toggle('green', sum===20);
+}
+
+function addBlock(dayKey, type, customText){
+  state[dayKey] ||= [];
+  if(type==='custom'){ state[dayKey].push({ type:'custom', text:customText }); }
+  else { state[dayKey].push({ type }); }
+  save(); syncDay(dayKey);
+}
+
+function removeBlock(dayKey, idx){ state[dayKey].splice(idx,1); save(); syncDay(dayKey); }
+
+function syncDay(dayKey){
+  document.querySelectorAll(`[data-day="${dayKey}"]`).forEach(dayEl=>{
+    const blocks = dayEl.querySelector('.blocks');
+    blocks.innerHTML='';
+    (state[dayKey]||[]).map(normalizeBlock).forEach((b,idx)=>{
+      let el = document.createElement('div');
+      el.className='block';
+      if(b.type==='custom'){
+        const textSpan = document.createElement('span');
+        textSpan.contentEditable = true;
+        textSpan.textContent = b.text;
+        textSpan.addEventListener('blur',()=>{ state[dayKey][idx].text = textSpan.textContent; save(); });
+
+        const del = document.createElement('span');
+        del.className='delete';
+        del.textContent='×';
+        del.addEventListener('click',(e)=>{ e.stopPropagation(); removeBlock(dayKey, idx); });
+
+        el.appendChild(textSpan);
+        el.appendChild(del);
+        el.dataset.h=0;
+        el.classList.add('study');
+      } else { const d=blockDef(b.type); el.textContent=d.txt; el.classList.add(d.cls); el.dataset.h=d.h; }
+      blocks.appendChild(el);
+    });
+    updateWeek(dayEl.closest('.week'));
+  });
+}
+
+function render(){
+  navbar.innerHTML='';
+  for(let m=0;m<12;m++){
+    const monthName = new Date(year,m).toLocaleString('ru',{month:'long'}).replace(/^./,c=>c.toUpperCase());
+    const navBtn = document.createElement('button');
+    navBtn.textContent = monthName;
+    navBtn.onclick = ()=>{ document.getElementById('month-'+m).scrollIntoView({behavior:'smooth'}); };
+    navbar.appendChild(navBtn);
+
+    const month = document.createElement('div'); month.className='month'; month.id='month-'+m;
+    month.innerHTML = `<h2 style='padding-left:12px;'>${monthName}</h2>`;
+    const weeks = document.createElement('div'); weeks.className='weeks';
+
+    let d = new Date(year,m,1);
+    d.setDate(d.getDate() - ((d.getDay()+6)%7));
+
+    for(let w=0;w<6;w++){
+      const week = document.createElement('div'); week.className='week';
+      for(let i=0;i<7;i++){
+        const day = document.createElement('div'); day.className='day';
+        if(d.getMonth()!==m) day.classList.add('other');
+        const key = d.toISOString().slice(0,10);
+        day.dataset.day=key;
+        day.innerHTML=`<div class="day-header">${names[i]} ${d.getDate()}</div>`;
+        const blocks = document.createElement('div'); blocks.className='blocks';
+
+        const ctr = document.createElement('div'); ctr.className='controls';
+        const menu = document.createElement('div'); menu.className='menu';
+        const addBtn = document.createElement('button'); addBtn.textContent='Добавить';
+        addBtn.onclick=()=>menu.classList.toggle('open');
+        const drop = document.createElement('div'); drop.className='dropdown';
+        ['w8a','w4m','w4e','over','study','custom'].forEach(t=>{
+          const b = document.createElement('button');
+          b.textContent = (t==='custom'?'Свой текст…':blockDef(t).txt);
+          b.addEventListener('click',()=>{
+            if(t==='custom'){
+              const blockEl = document.createElement('div');
+              blockEl.className='block study';
+
+              const textSpan = document.createElement('span');
+              textSpan.contentEditable = true;
+              textSpan.textContent = 'Новый блок';
+              textSpan.addEventListener('blur',()=>{ state[key][state[key].length-1].text = textSpan.textContent; save(); });
+
+              const del = document.createElement('span');
+              del.className='delete';
+              del.textContent='×';
+              del.addEventListener('click',(e)=>{ e.stopPropagation(); removeBlock(key, state[key].length-1); });
+
+              blockEl.appendChild(textSpan);
+              blockEl.appendChild(del);
+
+              (state[key] ||= []).push({type:'custom', text:'Новый блок'});
+              blocks.appendChild(blockEl);
+            } else { addBlock(key,t); }
+            menu.classList.remove('open');
+          });
+          drop.appendChild(b);
+        });
+        menu.appendChild(addBtn);
+        menu.appendChild(drop);
+        ctr.appendChild(menu);
+
+        day.appendChild(blocks);
+        day.appendChild(ctr);
+        week.appendChild(day);
+        d.setDate(d.getDate()+1);
+      }
+      weeks.appendChild(week); updateWeek(week);
+    }
+    month.appendChild(weeks); calendar.appendChild(month);
+  }
+  let hideTimeout;
+  document.querySelectorAll('.month').forEach(monthEl=>{
+    monthEl.addEventListener('mouseenter',()=>{ clearTimeout(hideTimeout); navbar.style.display='flex'; });
+    monthEl.addEventListener('mouseleave',()=>{ hideTimeout=setTimeout(()=>{ navbar.style.display='none'; },500); });
+  });
+  navbar.addEventListener('mouseenter',()=>{ clearTimeout(hideTimeout); navbar.style.display='flex'; });
+  navbar.addEventListener('mouseleave',()=>{ hideTimeout=setTimeout(()=>{ navbar.style.display='none'; },500); });
+}
+render();
+</script>
+</body>
+</html>
