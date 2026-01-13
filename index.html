@@ -2,275 +2,719 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<title>Рабочий календарь, 2026 г.</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Рабочий календарь 2026</title>
 <style>
 :root {
-  --bg: #f4f6f8;
-  --text: #111;
+  --bg: #f8fafc;
+  --text: #0f172a;
   --card: #ffffff;
-  --border: #d0d7de;
-  --week-ok: #c8f7d2;
-  --btn: #eaeef2;
+  --border: #e2e8f0;
+  --week-ok: #d1fae5;
+  --accent: #3b82f6;
+  --accent-light: #dbeafe;
+  --shadow: rgba(0,0,0,0.1);
 }
 body.dark {
-  --bg: #0f0f12;
-  --text: #eaeaea;
-  --card: #1a1a22;
-  --border: #2a2a33;
-  --week-ok: #1f3d2b;
-  --btn: #333;
+  --bg: #0f172a;
+  --text: #f1f5f9;
+  --card: #1e293b;
+  --border: #334155;
+  --week-ok: #064e3b;
+  --accent: #60a5fa;
+  --accent-light: #1e3a8a;
+  --shadow: rgba(0,0,0,0.3);
 }
+
+* { box-sizing: border-box; }
 body {
-  margin:0; padding:16px;
-  font-family: Arial, sans-serif;
+  margin:0; padding:0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   background: var(--bg);
   color: var(--text);
+  transition: background 0.3s, color 0.3s;
 }
-h1 { margin-bottom: 10px; padding-left:12px; }
-.month {
-  background: var(--card);
-  border:1px solid var(--border);
-  border-radius:12px;
-  padding:12px;
-  margin-bottom:30px;
+
+.header {
+  background: linear-gradient(135deg, var(--accent) 0%, #8b5cf6 100%);
+  color: white;
+  padding: 24px;
+  box-shadow: 0 4px 6px var(--shadow);
+  position: sticky;
+  top: 0;
+  z-index: 100;
 }
-.weekdays {
-  display:grid;
-  grid-template-columns: repeat(7,1fr);
-  gap:6px;
-  padding:4px 0;
-  font-weight:bold;
-  text-align:center;
-}
-.weeks { display:flex; flex-direction:column; gap:10px; }
-.week {
-  display:grid;
-  grid-template-columns: repeat(7,1fr);
-  gap:6px;
-  padding:8px 0;
-  border-radius:10px;
-  background: var(--bg);
-}
-.week.green {
-  background: var(--week-ok);
-  outline:2px solid #2ecc71;
-}
-.day {
-  background: var(--card);
-  border-radius:8px;
-  padding:6px;
-  min-height:100px;
-  display:flex;
-  flex-direction:column;
-}
-.day.other { opacity:0.4; }
-.day-header { font-size:12px; margin-bottom:4px; text-align:center; }
-.blocks { flex-grow:1; display:flex; flex-direction:column; gap:4px; }
-.block {
-  font-size:11px;
-  padding:4px 6px;
-  border-radius:6px;
-  cursor:pointer;
-  color:#111;
-  display:flex;
+
+.header-content {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
 }
-.block span.delete {
-  margin-left:8px;
-  cursor:pointer;
-  color:red;
-  font-weight:bold;
+
+h1 { margin: 0; font-size: 28px; font-weight: 700; }
+
+.stats {
+  display: flex;
+  gap: 24px;
+  align-items: center;
 }
-body.dark .block{ color:#111; }
-.work { background:#dbeafe; }
-.over { background:#fde68a; }
-.study { background:#e5e7eb; }
-.controls { display:flex; gap:4px; }
-.menu{ position:relative; }
-.menu button{ font-size:11px; }
-.dropdown{
-  position:absolute;
-  bottom:110%; left:0;
-  background:var(--card);
-  border:1px solid var(--border);
-  border-radius:8px;
-  padding:6px;
-  display:none;
-  flex-direction:column;
-  gap:4px;
-  z-index:10;
+
+.stat-item {
+  text-align: center;
 }
-.menu.open .dropdown{ display:flex; }
-.dropdown button{ width:100%; text-align:left; }
-button {
-  font-size:10px;
-  padding:3px 6px;
-  border:none;
-  border-radius:6px;
-  background: var(--btn);
-  cursor:pointer;
+
+.stat-value {
+  font-size: 24px;
+  font-weight: 700;
+  display: block;
 }
-.topbar { display:flex; gap:10px; margin-bottom:10px; align-items:flex-start; padding-left:12px; }
-.topbar button { margin-left:auto; }
-.navbar { position:fixed; top:0; left:0; right:0; display:flex; gap:5px; background:var(--card); border-bottom:1px solid var(--border); padding:5px; z-index:50; display:none; }
-.navbar button { font-size:10px; padding:3px 6px; }
+
+.stat-label {
+  font-size: 12px;
+  opacity: 0.9;
+}
+
+.theme-btn {
+  background: rgba(255,255,255,0.2);
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  color: white;
+  cursor: pointer;
+  font-size: 20px;
+  transition: background 0.2s;
+}
+
+.theme-btn:hover {
+  background: rgba(255,255,255,0.3);
+}
+
+.container {
+  max-width: 1400px;
+  margin: 24px auto;
+  padding: 0 24px;
+}
+
+.month-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 24px;
+  margin-bottom: 40px;
+}
+
+.month-card {
+  background: var(--card);
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 2px 8px var(--shadow);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.month-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 16px var(--shadow);
+}
+
+.month-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--border);
+}
+
+.month-name {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.month-hours {
+  font-size: 14px;
+  font-weight: 600;
+  padding: 4px 12px;
+  background: var(--accent-light);
+  border-radius: 12px;
+  color: var(--accent);
+}
+
+.weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.weekday {
+  text-align: center;
+  font-size: clamp(9px, 1.5vw, 11px);
+  font-weight: 700;
+  color: var(--accent);
+  padding: 4px 2px;
+}
+
+.days-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+.day {
+  background: var(--bg);
+  border-radius: 8px;
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 2px solid transparent;
+  position: relative;
+  min-height: 50px;
+  aspect-ratio: 1;
+  overflow: hidden;
+}
+
+.day:hover {
+  border-color: var(--accent);
+  transform: scale(1.05);
+}
+
+.day.other {
+  opacity: 0.25;
+}
+
+.day.today {
+  border-color: #ef4444;
+  background: linear-gradient(135deg, #fee2e2 0%, var(--bg) 100%);
+}
+
+.day-number {
+  font-size: clamp(10px, 2vw, 13px);
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 2px;
+  flex-shrink: 0;
+}
+
+.day.week-complete {
+  background: var(--week-ok);
+}
+
+.day-blocks {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex-grow: 1;
+  overflow: hidden;
+}
+
+.mini-block {
+  height: 3px;
+  border-radius: 2px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.mini-block.work { background: #3b82f6; }
+.mini-block.over { background: #f59e0b; }
+.mini-block.study { background: #8b5cf6; }
+
+.day-total {
+  font-size: clamp(8px, 1.5vw, 9px);
+  text-align: center;
+  font-weight: 600;
+  color: var(--accent);
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.modal {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 200;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.modal.open { display: flex; }
+
+.modal-content {
+  background: var(--card);
+  border-radius: 16px;
+  padding: 24px;
+  max-width: 500px;
+  width: 100%;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 40px var(--shadow);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.modal-title {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: var(--text);
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.close-btn:hover {
+  background: var(--border);
+}
+
+.blocks-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.block-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  border-radius: 8px;
+  background: var(--bg);
+  gap: 8px;
+}
+
+.block-item.work { border-left: 4px solid #3b82f6; }
+.block-item.over { border-left: 4px solid #f59e0b; }
+.block-item.study { border-left: 4px solid #8b5cf6; }
+
+.block-text {
+  flex-grow: 1;
+  font-size: 14px;
+}
+
+.block-text[contenteditable="true"] {
+  outline: 2px solid var(--accent);
+  padding: 4px;
+  border-radius: 4px;
+}
+
+.delete-block-btn {
+  background: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 12px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.delete-block-btn:hover {
+  background: #dc2626;
+}
+
+.add-buttons {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.add-btn {
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 12px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  transition: background 0.2s;
+}
+
+.add-btn:hover {
+  background: #2563eb;
+}
+
+.add-btn.custom {
+  background: #8b5cf6;
+}
+
+.add-btn.custom:hover {
+  background: #7c3aed;
+}
+
 @media (max-width: 768px) {
-  .week { grid-template-columns: repeat(2,1fr); }
+  .month-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .stats {
+    width: 100%;
+    justify-content: space-around;
+  }
+  
+  h1 {
+    font-size: 22px;
+  }
+  
+  .day {
+    min-height: 40px;
+    padding: 2px;
+  }
+  
+  .day-number {
+    font-size: 11px;
+    margin-bottom: 1px;
+  }
+  
+  .mini-block {
+    height: 2px;
+  }
+  
+  .day-total {
+    font-size: 8px;
+    margin-top: 1px;
+  }
 }
 </style>
 </head>
 <body>
-<div class="topbar">
-  <h1>Рабочий календарь, 2026 г.</h1>
-  <button onclick="toggleTheme()">🌗</button>
+
+<div class="header">
+  <div class="header-content">
+    <h1>📅 Рабочий календарь 2026</h1>
+    <div class="stats">
+      <div class="stat-item">
+        <span class="stat-value" id="totalHours">0</span>
+        <span class="stat-label">часов в году</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-value" id="completeWeeks">0</span>
+        <span class="stat-label">полных недель</span>
+      </div>
+    </div>
+    <button class="theme-btn" onclick="toggleTheme()">🌓</button>
+  </div>
 </div>
-<div class="navbar" id="navbar"></div>
-<div id="calendar"></div>
+
+<div class="container">
+  <div class="month-grid" id="calendar"></div>
+</div>
+
+<div class="modal" id="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <div class="modal-title" id="modalTitle">День</div>
+      <button class="close-btn" onclick="closeModal()">×</button>
+    </div>
+    
+    <div class="blocks-list" id="blocksList"></div>
+    
+    <div class="add-buttons">
+      <button class="add-btn" onclick="addBlock('w8a')">Работа 8ч<br>(9-17)</button>
+      <button class="add-btn" onclick="addBlock('w4m')">Работа 4ч<br>(9-13)</button>
+      <button class="add-btn" onclick="addBlock('w4e')">Работа 4ч<br>(13-17)</button>
+      <button class="add-btn" onclick="addBlock('over')">Переработка<br>8ч</button>
+      <button class="add-btn custom" onclick="addBlock('study')">Учёба</button>
+      <button class="add-btn custom" onclick="addBlock('custom')">Свой блок</button>
+    </div>
+  </div>
+</div>
+
 <script>
-const calendar = document.getElementById('calendar');
-const navbar = document.getElementById('navbar');
 const year = 2026;
-const names = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
-const storeKey = 'workCalendar2026';
-let state = JSON.parse(localStorage.getItem(storeKey) || '{}');
+const monthNames = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+const dayNames = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
 
-function save(){ localStorage.setItem(storeKey, JSON.stringify(state)); }
-function toggleTheme(){ document.body.classList.toggle('dark'); }
+const blockTypes = {
+  w8a: { text: 'Работа 8ч (9:00–17:00)', hours: 8, cls: 'work' },
+  w4m: { text: 'Работа 4ч (9:00–13:00)', hours: 4, cls: 'work' },
+  w4e: { text: 'Работа 4ч (13:00–17:00)', hours: 4, cls: 'work' },
+  over: { text: 'Переработка (9:00–17:00)', hours: 8, cls: 'over' },
+  study: { text: 'Учёба', hours: 0, cls: 'study' },
+  custom: { text: 'Свой блок', hours: 0, cls: 'study' }
+};
 
-function blockDef(type){
-  return {
-    w8a:{txt:'Работа 8 ч. (9:00–17:00)', h:8, cls:'work'},
-    w4m:{txt:'Работа 4 ч. (9:00–13:00)', h:4, cls:'work'},
-    w4e:{txt:'Работа 4 ч. (13:00–17:00)', h:4, cls:'work'},
-    over:{txt:'Переработка (9:00–17:00)', h:8, cls:'over'},
-    study:{txt:'Учёба', h:0, cls:'study'}
-  }[type];
-}
+let state = {};
+let currentDay = null;
 
-function normalizeBlock(b){ if(typeof b === 'string') return { type:b }; return b; }
-
-function updateWeek(week){
-  if(!week) return;
-  let sum = 0;
-  week.querySelectorAll('.block').forEach(b=>sum+=Number(b.dataset.h||0));
-  week.classList.toggle('green', sum===20);
-}
-
-function addBlock(dayKey, type, customText){
-  state[dayKey] ||= [];
-  if(type==='custom'){ state[dayKey].push({ type:'custom', text:customText }); }
-  else { state[dayKey].push({ type }); }
-  save(); syncDay(dayKey);
-}
-
-function removeBlock(dayKey, idx){ state[dayKey].splice(idx,1); save(); syncDay(dayKey); }
-
-function syncDay(dayKey){
-  document.querySelectorAll(`[data-day="${dayKey}"]`).forEach(dayEl=>{
-    const blocks = dayEl.querySelector('.blocks');
-    blocks.innerHTML='';
-    (state[dayKey]||[]).map(normalizeBlock).forEach((b,idx)=>{
-      let el = document.createElement('div');
-      el.className='block';
-      if(b.type==='custom'){
-        const textSpan = document.createElement('span');
-        textSpan.contentEditable = true;
-        textSpan.textContent = b.text;
-        textSpan.addEventListener('blur',()=>{ state[dayKey][idx].text = textSpan.textContent; save(); });
-
-        const del = document.createElement('span');
-        del.className='delete';
-        del.textContent='×';
-        del.addEventListener('click',(e)=>{ e.stopPropagation(); removeBlock(dayKey, idx); });
-
-        el.appendChild(textSpan);
-        el.appendChild(del);
-        el.dataset.h=0;
-        el.classList.add('study');
-      } else { 
-        const d=blockDef(b.type); 
-        el.textContent=d.txt; 
-        el.classList.add(d.cls); 
-        el.dataset.h=d.h;
-        el.addEventListener('click',()=>{ removeBlock(dayKey, idx); });
-      }
-      blocks.appendChild(el);
-    });
-    updateWeek(dayEl.closest('.week'));
-  });
-}
-
-function render(){
-  navbar.innerHTML='';
-  for(let m=0;m<12;m++){
-    const monthName = new Date(year,m).toLocaleString('ru',{month:'long'}).replace(/^./,c=>c.toUpperCase());
-    const navBtn = document.createElement('button');
-    navBtn.textContent = monthName;
-    navBtn.onclick = ()=>{ document.getElementById('month-'+m).scrollIntoView({behavior:'smooth'}); };
-    navbar.appendChild(navBtn);
-
-    const month = document.createElement('div'); month.className='month'; month.id='month-'+m;
-    month.innerHTML = `<h2 style='padding-left:12px;'>${monthName}</h2>`;
-
-    const weekdays = document.createElement('div'); weekdays.className='weekdays';
-    weekdays.innerHTML = names.map(n=>`<div>${n}</div>`).join('');
-    month.appendChild(weekdays);
-
-    const weeks = document.createElement('div'); weeks.className='weeks';
-
-    let d = new Date(year,m,1);
-    d.setDate(d.getDate() - ((d.getDay()+6)%7));
-
-    for(let w=0;w<6;w++){
-      const week = document.createElement('div'); week.className='week';
-      for(let i=0;i<7;i++){
-        const day = document.createElement('div'); day.className='day';
-        if(d.getMonth()!==m) day.classList.add('other');
-        const key = d.toISOString().slice(0,10);
-        day.dataset.day=key;
-        day.innerHTML=`<div class="day-header">${d.getDate()}</div>`;
-        const blocks = document.createElement('div'); blocks.className='blocks';
-
-        const ctr = document.createElement('div'); ctr.className='controls';
-        const menu = document.createElement('div'); menu.className='menu';
-        const addBtn = document.createElement('button'); addBtn.textContent='Добавить';
-        addBtn.onclick=()=>menu.classList.toggle('open');
-        const drop = document.createElement('div'); drop.className='dropdown';
-        ['w8a','w4m','w4e','over','study','custom'].forEach(t=>{
-          const b = document.createElement('button');
-          b.textContent = (t==='custom'?'Свой текст…':blockDef(t).txt);
-          b.addEventListener('click',()=>{
-            if(t==='custom'){
-              (state[key] ||= []).push({type:'custom', text:'Новый блок'});
-              syncDay(key);
-            } else { addBlock(key,t); }
-            menu.classList.remove('open');
-          });
-          drop.appendChild(b);
-        });
-        menu.appendChild(addBtn);
-        menu.appendChild(drop);
-        ctr.appendChild(menu);
-
-        day.appendChild(blocks);
-        day.appendChild(ctr);
-        week.appendChild(day);
-        d.setDate(d.getDate()+1);
-      }
-      weeks.appendChild(week); updateWeek(week);
-    }
-    month.appendChild(weeks); calendar.appendChild(month);
+function save() {
+  try {
+    localStorage.setItem('workCalendar2026', JSON.stringify(state));
+  } catch(e) {
+    console.error('Save error:', e);
   }
-  let hideTimeout;
-  document.querySelectorAll('.month').forEach(monthEl=>{
-    monthEl.addEventListener('mouseenter',()=>{ clearTimeout(hideTimeout); navbar.style.display='flex'; });
-    monthEl.addEventListener('mouseleave',()=>{ hideTimeout=setTimeout(()=>{ navbar.style.display='none'; },500); });
+}
+
+function load() {
+  try {
+    const data = localStorage.getItem('workCalendar2026');
+    state = data ? JSON.parse(data) : {};
+  } catch(e) {
+    console.error('Load error:', e);
+    state = {};
+  }
+}
+
+function toggleTheme() {
+  document.body.classList.toggle('dark');
+  localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
+}
+
+function getDayBlocks(dayKey) {
+  return (state[dayKey] || []).map(b => 
+    typeof b === 'string' ? { type: b } : b
+  );
+}
+
+function getDayHours(dayKey) {
+  return getDayBlocks(dayKey).reduce((sum, b) => {
+    const def = blockTypes[b.type];
+    return sum + (def ? def.hours : 0);
+  }, 0);
+}
+
+function getWeekDays(startDate) {
+  const days = [];
+  const d = new Date(startDate);
+  for(let i = 0; i < 7; i++) {
+    days.push(d.toISOString().slice(0, 10));
+    d.setDate(d.getDate() + 1);
+  }
+  return days;
+}
+
+function isWeekComplete(startDate) {
+  const days = getWeekDays(startDate);
+  const total = days.reduce((sum, key) => sum + getDayHours(key), 0);
+  return total === 20;
+}
+
+function renderMonth(monthIndex) {
+  const card = document.createElement('div');
+  card.className = 'month-card';
+  
+  const firstDay = new Date(year, monthIndex, 1);
+  const lastDay = new Date(year, monthIndex + 1, 0);
+  
+  // Calculate month hours
+  let monthHours = 0;
+  for(let d = 1; d <= lastDay.getDate(); d++) {
+    const key = `${year}-${String(monthIndex+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    monthHours += getDayHours(key);
+  }
+  
+  card.innerHTML = `
+    <div class="month-header">
+      <div class="month-name">${monthNames[monthIndex]}</div>
+      <div class="month-hours">${monthHours}ч</div>
+    </div>
+    <div class="weekdays">
+      ${dayNames.map(n => `<div class="weekday">${n}</div>`).join('')}
+    </div>
+    <div class="days-grid" id="month-${monthIndex}"></div>
+  `;
+  
+  const grid = card.querySelector('.days-grid');
+  
+  // Start from Monday of first week
+  let d = new Date(firstDay);
+  const startOffset = (d.getDay() + 6) % 7;
+  d.setDate(d.getDate() - startOffset);
+  
+  const today = new Date().toISOString().slice(0, 10);
+  
+  // Render 6 weeks (42 days) to always show complete grid
+  for(let i = 0; i < 42; i++) {
+    const dayKey = d.toISOString().slice(0, 10);
+    const dayEl = document.createElement('div');
+    dayEl.className = 'day';
+    
+    if(d.getMonth() !== monthIndex) dayEl.classList.add('other');
+    if(dayKey === today) dayEl.classList.add('today');
+    
+    // Check if week is complete
+    const dayOfWeek = (d.getDay() + 6) % 7;
+    if(dayOfWeek === 0) {
+      const weekStart = new Date(d);
+      if(isWeekComplete(weekStart)) {
+        for(let j = 0; j < 7 && i + j < 42; j++) {
+          const futureDay = new Date(d);
+          futureDay.setDate(futureDay.getDate() + j);
+          if(futureDay.getMonth() === monthIndex) {
+            setTimeout(() => {
+              const el = grid.children[i + j];
+              if(el) el.classList.add('week-complete');
+            }, 0);
+          }
+        }
+      }
+    }
+    
+    const blocks = getDayBlocks(dayKey);
+    const hours = getDayHours(dayKey);
+    
+    dayEl.innerHTML = `
+      <div class="day-number">${d.getDate()}</div>
+      <div class="day-blocks">
+        ${blocks.map(b => `<div class="mini-block ${blockTypes[b.type]?.cls || 'study'}"></div>`).join('')}
+      </div>
+      ${hours > 0 ? `<div class="day-total">${hours}ч</div>` : ''}
+    `;
+    
+    dayEl.onclick = () => openModal(dayKey);
+    grid.appendChild(dayEl);
+    
+    d.setDate(d.getDate() + 1);
+  }
+  
+  return card;
+}
+
+function render() {
+  const calendar = document.getElementById('calendar');
+  calendar.innerHTML = '';
+  
+  for(let m = 0; m < 12; m++) {
+    calendar.appendChild(renderMonth(m));
+  }
+  
+  updateStats();
+}
+
+function updateStats() {
+  let totalHours = 0;
+  let completeWeeks = 0;
+  
+  Object.keys(state).forEach(key => {
+    totalHours += getDayHours(key);
   });
-  navbar.addEventListener('mouseenter',()=>{ clearTimeout(hideTimeout); navbar.style.display='flex'; });
-  navbar.addEventListener('mouseleave',()=>{ hideTimeout=setTimeout(()=>{ navbar.style.display='none'; },500); });
+  
+  // Count complete weeks
+  const d = new Date(year, 0, 1);
+  d.setDate(d.getDate() - ((d.getDay() + 6) % 7));
+  
+  for(let w = 0; w < 54; w++) {
+    if(isWeekComplete(new Date(d))) completeWeeks++;
+    d.setDate(d.getDate() + 7);
+  }
+  
+  document.getElementById('totalHours').textContent = totalHours;
+  document.getElementById('completeWeeks').textContent = completeWeeks;
+}
+
+function openModal(dayKey) {
+  currentDay = dayKey;
+  const date = new Date(dayKey);
+  document.getElementById('modalTitle').textContent = 
+    `${date.getDate()} ${monthNames[date.getMonth()]} ${year}`;
+  
+  updateBlocksList();
+  document.getElementById('modal').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('modal').classList.remove('open');
+  currentDay = null;
+}
+
+function updateBlocksList() {
+  if(!currentDay) return;
+  
+  const blocks = getDayBlocks(currentDay);
+  const list = document.getElementById('blocksList');
+  list.innerHTML = '';
+  
+  blocks.forEach((block, idx) => {
+    const def = blockTypes[block.type];
+    const item = document.createElement('div');
+    item.className = `block-item ${def?.cls || 'study'}`;
+    
+    const text = document.createElement('div');
+    text.className = 'block-text';
+    
+    if(block.type === 'custom') {
+      text.contentEditable = true;
+      text.textContent = block.text || 'Свой блок';
+      text.onblur = () => {
+        state[currentDay][idx].text = text.textContent;
+        save();
+      };
+    } else {
+      text.textContent = def?.text || block.text;
+    }
+    
+    const delBtn = document.createElement('button');
+    delBtn.className = 'delete-block-btn';
+    delBtn.textContent = '×';
+    delBtn.onclick = () => {
+      state[currentDay].splice(idx, 1);
+      if(state[currentDay].length === 0) delete state[currentDay];
+      save();
+      updateBlocksList();
+      render();
+    };
+    
+    item.appendChild(text);
+    item.appendChild(delBtn);
+    list.appendChild(item);
+  });
+  
+  if(blocks.length === 0) {
+    list.innerHTML = '<div style="text-align:center;color:var(--border);padding:20px;">Нет записей</div>';
+  }
+}
+
+function addBlock(type) {
+  if(!currentDay) return;
+  
+  state[currentDay] = state[currentDay] || [];
+  
+  if(type === 'custom') {
+    state[currentDay].push({ type: 'custom', text: 'Новый блок' });
+  } else {
+    state[currentDay].push({ type });
+  }
+  
+  save();
+  updateBlocksList();
+  render();
+}
+
+// Click outside modal to close
+document.getElementById('modal').onclick = (e) => {
+  if(e.target.id === 'modal') closeModal();
+};
+
+// Init
+load();
+if(localStorage.getItem('theme') === 'dark') {
+  document.body.classList.add('dark');
 }
 render();
 </script>
+
 </body>
 </html>
