@@ -203,6 +203,32 @@ h1 { margin: 0; font-size: 28px; font-weight: 700; }
 
 .day.week-complete {
   background: var(--week-ok);
+  position: relative;
+}
+
+.day.week-overtime {
+  background: #fef3c7;
+  position: relative;
+}
+
+body.dark .day.week-overtime {
+  background: #78350f;
+}
+
+.week-label {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  font-size: 8px;
+  font-weight: 700;
+  padding: 2px 4px;
+  border-radius: 4px;
+  background: rgba(0,0,0,0.1);
+  color: var(--text);
+}
+
+body.dark .week-label {
+  background: rgba(255,255,255,0.2);
 }
 
 .day-blocks {
@@ -506,10 +532,17 @@ function getWeekDays(startDate) {
   return days;
 }
 
-function isWeekComplete(startDate) {
+function getWeekHours(startDate) {
   const days = getWeekDays(startDate);
-  const total = days.reduce((sum, key) => sum + getDayHours(key), 0);
-  return total === 20;
+  return days.reduce((sum, key) => sum + getDayHours(key), 0);
+}
+
+function isWeekComplete(startDate) {
+  return getWeekHours(startDate) === 20;
+}
+
+function isWeekOvertime(startDate) {
+  return getWeekHours(startDate) > 20;
 }
 
 function renderMonth(monthIndex) {
@@ -544,7 +577,9 @@ function renderMonth(monthIndex) {
   const startOffset = (d.getDay() + 6) % 7;
   d.setDate(d.getDate() - startOffset);
   
-  const today = new Date().toISOString().slice(0, 10);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const todayStr = today.toISOString().slice(0, 10);
   
   // Render 6 weeks (42 days) to always show complete grid
   for(let i = 0; i < 42; i++) {
@@ -553,20 +588,36 @@ function renderMonth(monthIndex) {
     dayEl.className = 'day';
     
     if(d.getMonth() !== monthIndex) dayEl.classList.add('other');
-    if(dayKey === today) dayEl.classList.add('today');
+    if(dayKey === todayStr) dayEl.classList.add('today');
     
-    // Check if week is complete
+    // Check if week is complete or overtime
     const dayOfWeek = (d.getDay() + 6) % 7;
     if(dayOfWeek === 0) {
       const weekStart = new Date(d);
-      if(isWeekComplete(weekStart)) {
+      const weekHours = getWeekHours(weekStart);
+      const isComplete = weekHours === 20;
+      const isOvertime = weekHours > 20;
+      
+      if(isComplete || isOvertime) {
         for(let j = 0; j < 7 && i + j < 42; j++) {
           const futureDay = new Date(d);
           futureDay.setDate(futureDay.getDate() + j);
           if(futureDay.getMonth() === monthIndex) {
             setTimeout(() => {
               const el = grid.children[i + j];
-              if(el) el.classList.add('week-complete');
+              if(el) {
+                if(isOvertime) {
+                  el.classList.add('week-overtime');
+                  if(j === 0) {
+                    const label = document.createElement('div');
+                    label.className = 'week-label';
+                    label.textContent = `+${weekHours - 20}ч`;
+                    el.appendChild(label);
+                  }
+                } else {
+                  el.classList.add('week-complete');
+                }
+              }
             }, 0);
           }
         }
